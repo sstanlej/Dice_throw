@@ -4,9 +4,11 @@ Stanisław Liszewski
 
 Opis programu:
 Program jest aplikacją konsolową pozwalającą na symulację rzutu różnymi rodzajami kostek z różną ilością ścianek. Po uruchomieniu programu w konsoli wyświetli się komunikat z prośbą o podanie liczby ścianek kostki. Po wprowadzeniu liczby ścianek (dodatniej) wyświetli się proste menu z trzema opcjami:
+
 0. Exit
 1. Throw
 2. Input number of sides
+
 Wybór opcji odbywa się również poprzez konsolę.
 Wybór 0 spowoduje zakończenie działania programu. 
 Wybór 1 spowoduje "rzut kostką", czyli wylosowanie liczby z zakresu od 1 do podanej wcześniej liczby ścianek oraz wyświetlenie wyniku i ponowne wyświetlenie menu, co umożliwi ponowny rzut.

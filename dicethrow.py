@@ -56,8 +56,8 @@ class DiceApp:
             self.image_label.image = tk_image
             self.root.update()
             time.sleep(0.2)
-        
         result = random.randint(1, self.sides)
+
         final_image =  images[len(images) - 1]
         draw = ImageDraw.Draw(final_image)
         font = ImageFont.truetype("Helvetica", 50) 
@@ -131,6 +131,7 @@ class DiceApp:
         set_sides_window.title("Set Number of Sides")
 
         tk.Label(set_sides_window, text="Enter number of sides:").pack(pady=10)
+        # tk.Label(set_sides_window, text="(Note: Numbers over 4 digits may be displayed wrong)").pack(pady=10)
         entry_sides = tk.Entry(set_sides_window)
         entry_sides.pack(pady=10)
         entry_sides.focus()

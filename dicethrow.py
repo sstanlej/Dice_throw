@@ -55,7 +55,7 @@ class DiceApp:
             self.image_label.config(image=tk_image)
             self.image_label.image = tk_image
             self.root.update()
-            time.sleep(0.2)
+            time.sleep(0.1)  # Delay for 0.1 seconds
         result = random.randint(1, self.sides)
 
         final_image =  images[len(images) - 1]
@@ -118,7 +118,7 @@ class DiceApp:
             try:
                 sides = int(entry_sides.get())
                 if sides > 0:
-                    self.sides = sides
+                    self.sides = sides if sides <= 1000 else 1000
                     self.label_sides.config(text=f"Number of sides: {self.sides}")
                     self.previous_results.clear()
                     set_sides_window.destroy()
@@ -130,7 +130,7 @@ class DiceApp:
         set_sides_window = tk.Toplevel(self.root)
         set_sides_window.title("Set Number of Sides")
 
-        tk.Label(set_sides_window, text="Enter number of sides:").pack(pady=10)
+        tk.Label(set_sides_window, text="Enter number of sides (max 1000):").pack(pady=10)
         # tk.Label(set_sides_window, text="(Note: Numbers over 4 digits may be displayed wrong)").pack(pady=10)
         entry_sides = tk.Entry(set_sides_window)
         entry_sides.pack(pady=10)
@@ -142,7 +142,6 @@ class DiceApp:
 
         tk.Button(set_sides_window, text="Set", command=update_sides).pack(pady=10)
         tk.Button(set_sides_window, text="Cancel", command=set_sides_window.destroy).pack(pady=5)
-
 def main():
     root = tk.Tk()
     app = DiceApp(root)

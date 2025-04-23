@@ -1,6 +1,7 @@
 import tkinter as tk
 import random
 import time
+import pygame
 from PIL import Image, ImageTk, ImageDraw, ImageFont
 from tkinter import messagebox
 
@@ -8,9 +9,30 @@ class DiceApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Dice Roller")
+        self.throws = 0
 
         self.sides = 6
         self.previous_results = []
+
+        pygame.mixer.init()
+        self.sound_gun = pygame.mixer.Sound("animation/gun_sound.mp3")
+        self.sound_gun.set_volume(0.02)
+        self.sound_kick = pygame.mixer.Sound("animation/kick_sound.mp3")
+        self.sound_kick.set_volume(0.02)
+
+        self.open = False
+        self.alive = True
+        self.tk_img_click = self.get_tk_imgs(["animation/click.png",
+                                              "animation/click_empty.png"])
+
+        self.tk_img_kill_open = self.get_tk_imgs(["animation/kill_open.png"])[0]
+        self.tk_imgs_throw = self.get_tk_imgs(["animation/throw1.png",
+                                                "animation/throw2.png",
+                                                "animation/throw3.png"])
+        self.tk_imgs_kick = self.get_tk_imgs(["animation/kick1.png",
+                                              "animation/kick2.png"])
+        self.tk_img_kill = self.get_tk_imgs(["animation/kill.png"])[0]
+        self.tk_img_idle = self.get_tk_imgs(["animation/idle.png"])[0]
 
         self.create_widgets()
 
@@ -33,51 +55,102 @@ class DiceApp:
         self.btn_exit = tk.Button(self.root, text="Exit", command=self.root.quit)
         self.btn_exit.pack(pady=10)
 
-        self.result_label = tk.Label(self.root, text="Result: ", font=("Helvetica", 16))
-        self.result_label.pack(pady=20)
-
         self.image_label = tk.Label(self.root)
+        self.show_img(self.tk_img_idle, self.image_label)
         self.image_label.pack(pady=10)
+
+        self.label_previous = tk.Label(self.root, text="Previous throws: ")
+        self.label_previous.pack()
+
+    def animate(self, tk_imgs: list, label: tk.Label, freq: int):
+        for tk_img in tk_imgs:
+            self.show_img(tk_img, label)
+            time.sleep(freq)
+
+    def show_img(self, tk_img, label: tk.Label):
+        label.config(image=tk_img)
+        label.image = tk_img
+        self.root.update()
+
+    def text_on_image(self, image: str, text: str, size: int, pos: tuple[int]):
+        img =  Image.open(image)
+        draw = ImageDraw.Draw(img)
+        font = ImageFont.truetype("Helvetica", 50)
+        draw.text(pos, text=text, font=font, fill='black')
+        tk_img = ImageTk.PhotoImage(img)
+        return tk_img
+
+    def get_tk_imgs(self, img_names: list[str]):
+        tk_imgs = []
+        for img_name in img_names:
+            img = Image.open(img_name)
+            tk_img = ImageTk.PhotoImage(img)
+            tk_imgs.append(tk_img)
+        return tk_imgs
 
 
     def throw(self):
+        self.image_label.unbind("<Button-1>")
+        def on_image_click(event):
+            click_x, click_y = event.x, event.y
+            print(click_x, click_y)
+            if 80 <= click_x <= 200 and 100 <= click_y <= 220:
+                self.open = True
+                if self.alive:
+                    self.show_img(self.tk_img_click[0], self.image_label)
+                else:
+                    self.show_img(self.tk_img_click[1], self.image_label)
+
         self.btn_throw.config(state=tk.DISABLED)  # Block button
         self.root.unbind("<Return>")  # Block Enter key
-        self.result_label.config(text=f"Result:") 
+        print("open: ", self.open)
+        if self.throws > 0:
+            if(len(self.previous_results) >=3 and \
+                self.previous_results[-1]==self.previous_results[-2]) and \
+                self.previous_results[-2]==self.previous_results[-3]:
+                if(self.open):
+                    self.show_img(self.tk_img_kill_open, self.image_label)
+                    self.sound_gun.play()
+                    time.sleep(0.15)
+                    self.sound_gun.play()
+                    time.sleep(0.15)
+                    self.sound_gun.play()
+                    time.sleep(0.3)
+                    self.alive = False
+                else:
+                    tk_img_kick1 = self.text_on_image("animation/kick1.png",
+                                                        str(self.previous_results[-1]),
+                                                        50, (130, 145))
+                    tk_img_kick2 = self.tk_imgs_kick[1]
+                    self.sound_kick.play()
+                    self.animate([tk_img_kick1, tk_img_kick2], self.image_label, 0.1)
+            else:
+                self.sound_gun.play()
+                self.show_img(self.tk_img_kill, self.image_label)
+                time.sleep(0.2)
 
-
-        images = [Image.open("rzut1.png"), 
-                  Image.open("rzut2.png"),
-                  Image.open("rzut3.png"),
-                  Image.open("rzut4.png")]
-        for i in range(len(images) - 1):
-            tk_image = ImageTk.PhotoImage(images[i])
-            self.image_label.config(image=tk_image)
-            self.image_label.image = tk_image
-            self.root.update()
-            time.sleep(0.1)  # Delay for 0.1 seconds
         result = random.randint(1, self.sides)
-
-        final_image =  images[len(images) - 1]
-        draw = ImageDraw.Draw(final_image)
-        font = ImageFont.truetype("Helvetica", 50) 
-        text = str(result)
-        bbox = draw.textbbox((0, 0), text, font=font)
-        text_width = bbox[2] - bbox[0]
-        text_height = bbox[3] - bbox[1]
-
-        width, height = final_image.size
-        position = (width // 2 - text_width // 2 - 40, height // 2 - text_height // 2 + 30)
-        draw.text(position, text, font=font, fill="black")
-        final_tk_image = ImageTk.PhotoImage(final_image)
-        self.image_label.config(image=final_tk_image)
-        self.image_label.image = final_tk_image
-
-        self.result_label.config(text=f"Result: {result}")
+        last_five = self.previous_results[-5:]
+        last_five.reverse()
+        self.label_previous.config(text=f"Previous throws: {', '.join(map(str, last_five))}")
         self.previous_results.append(result)
-        self.btn_throw.config(state=tk.NORMAL)
+        self.throws += 1
 
-        self.root.bind("<Return>", self.throw_with_enter)
+        tk_imgs = self.tk_imgs_throw
+        tk_img_final = self.text_on_image("animation/final.png", str(result), 50, (130, 145))
+        self.tk_img_last_die = tk_img_final
+        tk_imgs.append(tk_img_final)
+
+        self.animate(tk_imgs, self.image_label, 0.1)
+        self.open = False
+
+        self.image_label.bind("<Button-1>", on_image_click)
+
+        tk_imgs.pop()
+
+        time.sleep(0.1)
+        self.btn_throw.config(state=tk.NORMAL) # Unblock button
+        self.root.bind("<Return>", self.throw_with_enter) # Unblock enter key
 
     def throw_with_enter(self, event=None):
         """Funkcja wywoływana po naciśnięciu klawisza Enter"""
@@ -136,12 +209,11 @@ class DiceApp:
         entry_sides.pack(pady=10)
         entry_sides.focus()
 
-        entry_sides.bind("<Return>", update_sides)
-        entry_sides.bind("<Escape>", lambda e: set_sides_window.destroy())
-
-
         tk.Button(set_sides_window, text="Set", command=update_sides).pack(pady=10)
+        entry_sides.bind("<Return>", update_sides)
+
         tk.Button(set_sides_window, text="Cancel", command=set_sides_window.destroy).pack(pady=5)
+        entry_sides.bind("<Escape>", lambda e: set_sides_window.destroy())
 def main():
     root = tk.Tk()
     app = DiceApp(root)

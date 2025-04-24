@@ -57,6 +57,7 @@ class DiceApp:
 
         self.image_label = tk.Label(self.root)
         self.show_img(self.tk_img_idle, self.image_label)
+        self.image_label.bind("<Button-1>", self.on_image_click)
         self.image_label.pack(pady=10)
 
         self.label_previous = tk.Label(self.root, text="Previous throws: ")
@@ -88,27 +89,29 @@ class DiceApp:
             tk_imgs.append(tk_img)
         return tk_imgs
 
+    def on_image_click(self, event):
+        click_x, click_y = event.x, event.y
+        print(click_x, click_y)
+        if 80 <= click_x <= 200 and 100 <= click_y <= 220 and self.throws > 0:
+            self.open = True
+            if self.alive:
+                self.show_img(self.tk_img_click[0], self.image_label)
+            else:
+                self.show_img(self.tk_img_click[1], self.image_label)
+        elif 295 <= click_x <= 350 and 73 <= click_y <= 193:
+            self.throw()
 
     def throw(self):
         self.image_label.unbind("<Button-1>")
-        def on_image_click(event):
-            click_x, click_y = event.x, event.y
-            print(click_x, click_y)
-            if 80 <= click_x <= 200 and 100 <= click_y <= 220:
-                self.open = True
-                if self.alive:
-                    self.show_img(self.tk_img_click[0], self.image_label)
-                else:
-                    self.show_img(self.tk_img_click[1], self.image_label)
+        
 
         self.btn_throw.config(state=tk.DISABLED)  # Block button
         self.root.unbind("<Return>")  # Block Enter key
-        print("open: ", self.open)
         if self.throws > 0:
             if(len(self.previous_results) >=3 and \
                 self.previous_results[-1]==self.previous_results[-2]) and \
                 self.previous_results[-2]==self.previous_results[-3]:
-                if(self.open):
+                if(self.open and self.alive):
                     self.show_img(self.tk_img_kill_open, self.image_label)
                     self.sound_gun.play()
                     time.sleep(0.15)
@@ -144,7 +147,7 @@ class DiceApp:
         self.animate(tk_imgs, self.image_label, 0.1)
         self.open = False
 
-        self.image_label.bind("<Button-1>", on_image_click)
+        self.image_label.bind("<Button-1>", self.on_image_click)
 
         tk_imgs.pop()
 

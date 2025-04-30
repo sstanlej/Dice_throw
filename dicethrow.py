@@ -102,9 +102,11 @@ class DiceApp:
             self.throw()
 
     def throw(self):
-        self.image_label.unbind("<Button-1>")
-        
+        last_five = self.previous_results[-5:]
+        last_five.reverse()
+        self.label_previous.config(text=f"Previous throws: {', '.join(map(str, last_five))}")
 
+        self.image_label.unbind("<Button-1>")
         self.btn_throw.config(state=tk.DISABLED)  # Block button
         self.root.unbind("<Return>")  # Block Enter key
         if self.throws > 0:
@@ -133,9 +135,6 @@ class DiceApp:
                 time.sleep(0.2)
 
         result = random.randint(1, self.sides)
-        last_five = self.previous_results[-5:]
-        last_five.reverse()
-        self.label_previous.config(text=f"Previous throws: {', '.join(map(str, last_five))}")
         self.previous_results.append(result)
         self.throws += 1
 
